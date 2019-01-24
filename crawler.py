@@ -90,8 +90,6 @@ class GmailClient(object):
                                         label,
                                         date))
             email_addresses.append((id,email_id))
-        print("Email addresses fetched:%s"%email_addresses)
-        self.create_tables()
         self.add_email_details(email_addresses)
         self.add_message_details(message_details)
     
@@ -114,7 +112,6 @@ class GmailClient(object):
         """
             sql queries
         """
-        print("Inserting message details to db with %s "%message_details)
         mydb = mysql.connector.connect(
                   host="192.168.56.102",
                   user="root",
@@ -153,33 +150,41 @@ class GmailClient(object):
         """
         :summary: Establishes connection objects to mysql, and performs queries
         """
+        mydb=self.get_mydb()
+        mycursor = mydb.cursor()
+        mycursor.execute("CREATE TABLE IF NOT EXISTS email_details (id VARCHAR(255) PRIMARY KEY, email_address VARCHAR(255))")
+        mycursor.execute("CREATE TABLE IF NOT EXISTS label_details (id VARCHAR(100) PRIMARY KEY, label_name VARCHAR(255))")
+        mycursor.execute("CREATE TABLE IF NOT EXISTS message_details (id int auto_increment PRIMARY KEY,message_id VARCHAR(255), from_address VARCHAR(255),\
+                        to_address VARCHAR(255),subject VARCHAR(255),label_id VARCHAR(100),message_date datetime,\
+                        FOREIGN KEY(label_id) REFERENCES label_details(id),FOREIGN KEY(message_id) REFERENCES email_details(id))")
+        mydb.commit()      
+        
+    def get_mydb(self):
+    
         mydb = mysql.connector.connect(
                   host="192.168.56.102",
                   user="root",
                   passwd="Global!23",
                   database="tenmiles"
                 )
-        mycursor = mydb.cursor()
-        mycursor.execute("CREATE TABLE IF NOT EXISTS email_details (id VARCHAR(255) PRIMARY KEY, email_address VARCHAR(255))")
-        mycursor.execute("CREATE TABLE IF NOT EXISTS label_details (id int PRIMARY KEY, label_name VARCHAR(255))")
-        mycursor.execute("CREATE TABLE IF NOT EXISTS message_details (id int auto_increment PRIMARY KEY,message_id VARCHAR(255), from_address VARCHAR(255),\
-                        to_address VARCHAR(255),subject VARCHAR(255),label_id VARCHAR(100),message_date datetime,\
-                        FOREIGN KEY(message_id) REFERENCES email_details(id))")
-        mydb.commit()      
-        
+        return mydb
+    
     def read_all_labels(self):
         results = self.service.users().labels().list(userId = 'me').execute()
         labels = results.get('labels', [])
         if not labels:
             print('No labels found.')
         else:
-            print('Labels:')
+            mydb=self.get_mydb()
+            mycursor = mydb.cursor()
             for label in labels:
-                print(label['name'],label['id'])
-
+                query="INSERT INTO label_details values ('%s','%s')"%(label['id'],label['name'])
+                mycursor.execute(query)
+            mydb.commit()
 
 def main():
     client_obj=GmailClient()
+    client_obj.create_tables()
     client_obj.read_all_labels()
     messages = client_obj.fetch_label_messages(label_ids=['INBOX'])
     email_addresses=client_obj.fetch_email(messages)
