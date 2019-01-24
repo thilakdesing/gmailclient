@@ -95,14 +95,12 @@ class GmailClient(object):
     
     def add_email_details(self,email_addresses):
         """
-            sql queries
+        :message_details: List of tuples containing messageid,from address,to address,subject,label id, message date
+        :summary:    
+                    1. Received database object
+                    2. Inserts data into email details table
         """
-        mydb = mysql.connector.connect(
-                  host="192.168.56.102",
-                  user="root",
-                  passwd="Global!23",
-                  database="tenmiles"
-                )
+        mydb=self.get_mydb()
         mycursor = mydb.cursor()
         query="INSERT INTO email_details (id,email_address) values (%s,%s)"
         mycursor.executemany(query,email_addresses)             
@@ -110,14 +108,12 @@ class GmailClient(object):
         
     def add_message_details(self,message_details):
         """
-            sql queries
+        :message_details: List of tuples containing messageid,from address,to address,subject,label id, message date
+        :summary:    
+                    1. Received database object
+                    2. Inserts data into message details table
         """
-        mydb = mysql.connector.connect(
-                  host="192.168.56.102",
-                  user="root",
-                  passwd="Global!23",
-                  database="tenmiles"
-                )
+        mydb=self.get_mydb()
         mycursor = mydb.cursor()
         query="INSERT INTO message_details (message_id,from_address,to_address,subject,label_id,message_date) values (%s,%s,%s,%s,%s,%s)"
         mycursor.executemany(query,message_details)             
@@ -140,6 +136,12 @@ class GmailClient(object):
         return message_detail
       
     def parse_email(self,email_address):
+        """
+        :args: email_address: email string enclosed in <> operator
+        :summary:
+                    1. Received email address and splits based on regex
+                    2. Reuturns matching group
+        """
         if email_address:
             pattern = re.search('<(.+?)>', email_address)
             email_id=pattern.group(1)
@@ -148,7 +150,8 @@ class GmailClient(object):
             
     def create_tables(self):
         """
-        :summary: Establishes connection objects to mysql, and performs queries
+        :summary: 1. Gets database connection object
+                  2. Creates database tables
         """
         mydb=self.get_mydb()
         mycursor = mydb.cursor()
@@ -160,7 +163,12 @@ class GmailClient(object):
         mydb.commit()      
         
     def get_mydb(self):
-    
+        """
+        :summary:
+                 1. Establishes connection to mysql
+                 2. Returns db connection object
+        """
+        
         mydb = mysql.connector.connect(
                   host="192.168.56.102",
                   user="root",
@@ -170,6 +178,11 @@ class GmailClient(object):
         return mydb
     
     def read_all_labels(self):
+        """
+        :summary:
+                    1. Fetch all the labels of user
+                    2. Loop through label list and store mapping in database 
+        """
         results = self.service.users().labels().list(userId = 'me').execute()
         labels = results.get('labels', [])
         if not labels:
@@ -190,10 +203,5 @@ def main():
     email_addresses=client_obj.fetch_email(messages)
 
 
-
-
-
 if __name__ == "__main__":
     main()
-
-

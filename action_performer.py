@@ -7,25 +7,41 @@ import json
 import mysql.connector
 
 class ActionPerformer(object):
+    """
+        Peforms actions on messages based on rules
+    """
     def display_rules(self):
-	rules = json.load(open('rules.json'))
-	for rule_number,rule_record in rules.iteritems():
-		criterias=rule_record['criteria']
-		print("")
-		print ("Rule %s matching %s of the following rules -->%s"%(rule_number,rule_record['predicate'],rule_record['action']) )
-		for criteria in criterias:
-			print (rule_number,criteria['name'],criteria['value'][0],criteria['value'][1])
-	
-	done=0
-	while(done==0):
-		rule_input=raw_input("Choose rule number from above rules:")
-		if rule_input not in rules.keys():
-			print ("Invalid input.")
-		else:
-			done=1
-	self.rule_engine(rule_input)
+        """
+        :summary:
+                    1.Displays the set of rules and actions by parsing rules.json file
+                    2.Expects user to choose rule number from command line
+                    3.Calls rule engine to implement rule
+        """
+    	rules = json.load(open('rules.json'))
+    	for rule_number,rule_record in rules.iteritems():
+    		criterias=rule_record['criteria']
+    		print("")
+    		print ("Rule %s matching %s of the following rules -->%s"%(rule_number,rule_record['predicate'],rule_record['action']) )
+    		for criteria in criterias:
+    			print (rule_number,criteria['name'],criteria['value'][0],criteria['value'][1])
+    	
+    	done=0
+    	while(done==0):
+    		rule_input=raw_input("Choose rule number from above rules:")
+    		if rule_input not in rules.keys():
+    			print ("Invalid input.")
+    		else:
+    			done=1
+    	self.rule_engine(rule_input)
 
     def rule_engine(self,rule_input):
+        """
+        :args: rule_input: Rule number chosen by user
+        :summary:
+                    1.Parses criterias in rules.json for chosen rule number
+                    2.Fetches results based on criterias by calling database
+                    3.Filters results based on predicates (ANY/ALL)
+        """
     	rules = json.load(open('rules.json'))
     	chosen_rule=rules[rule_input]
     	print('Beginning action')
@@ -59,6 +75,12 @@ class ActionPerformer(object):
         self.perform_action(modify_body)
         
     def perform_action(self,modify_body):
+        """
+        :args: modify_body: dictionary containing labels to be modified
+        :summary:
+                    1. Connects to google service
+                    2. Executes modification on selected messages
+        """
         SCOPES = 'https://www.googleapis.com/auth/gmail.modify'
         store = file.Storage('token.json')
         credentials = store.get()
@@ -67,19 +89,18 @@ class ActionPerformer(object):
             credentials = tools.run_flow(flow, store)
         service = discovery.build('gmail', 'v1', http=credentials.authorize(Http()))
         
-        results = service.users().labels().list(userId = 'me').execute()
-        labels = results.get('labels', [])
-        if not labels:
-            print('No labels found.')
-        else:
-            print('Labels:')
-            for label in labels:
-                print(label['name'],label['id'])
-
         message = service.users().messages().batchModify(userId='me',
                                                 body=modify_body).execute()
             
+    
     def execute_query(self,query):
+        """
+        :args: query: Query to be executed
+        :summary:
+                 1. Establishes connection to mysql
+                 2. Creates cursor and implements query
+                 3. Modifies result set to convenient format
+        """
         mydb = mysql.connector.connect(
                   host="192.168.56.102",
                   user="root",
