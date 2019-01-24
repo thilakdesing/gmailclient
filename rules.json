@@ -1,0 +1,151 @@
+{
+ "1":{
+      "predicate" : "ANY",
+      "criteria": [
+                    {
+                      "name": "from_address",
+                      "value": [
+                        "contains",
+                        "jobs-listings@linkedin.com"
+                      ]
+                    },
+                    {
+                      "name": "to_address",
+                      "value": [
+                        "contains",
+                        "thilak.desing@gmail.com"
+                      ]
+                    },
+                    {
+                      "name": "subject",
+                      "value": [
+                        "contains",
+                        "Python"
+                      ]
+                    }
+                  ],
+      "action":"Mark as Unread",            
+      "modify_body": {
+                  "addLabelIds": ["UNREAD"],
+                  "removeLabelIds": []
+                }
+    },
+  "2":{
+      "predicate" : "ALL",
+      "criteria": [
+                    {
+                      "name": "from_address",
+                      "value": [
+                        "contains",
+                        "@"
+                      ]
+                    },
+                    {
+                      "name": "to_address",
+                      "value": [
+                        "contains",
+                        "thilak.desing@gmail.com"
+                      ]
+                    },
+                    {
+                      "name": "subject",
+                      "value": [
+                        "contains",
+                        "jobs"
+                      ]
+                    }
+                  ],
+      "action":"Add label",
+      "modify_body": {
+                  "addLabelIds": ["Label_13"],
+                  "removeLabelIds": []
+                }
+    },
+    "3":{
+      "predicate" : "ANY",
+      "criteria": [
+                    {
+                      "name": "subject",
+                      "value": [
+                        "contains",
+                        "2018"
+                      ]
+                    },
+                    {
+                      "name": "message_date",
+                      "value": [
+                        "lessthanequals",
+                        "2019/01/01"
+                      ]
+                    }
+                  ],
+      "action":"Archival",
+      "modify_body": {
+      			  "addLabelIds": ["Label_5"],
+                  "removeLabelIds": ["INBOX"]
+                }
+    },
+	"4":{
+      "predicate" : "ALL",
+      "criteria": [
+                    {
+                      "name": "from_address",
+                      "value": [
+                        "contains",
+                        "tenmiles"
+                      ]
+                    },
+                    {
+                      "name": "to_address",
+                      "value": [
+                        "contains",
+                        "thilak.desing@gmail.com"
+                      ]
+		    },
+                    {
+                      "name": "subject",
+                      "value": [
+                        "contains",
+                        "assignment"
+                      ]
+                    }
+                  ],
+      "action":"Mark as Read",
+      "modify_body": {
+                  "removeLabelIds": ["UNREAD"]
+                }
+    },
+    "5":{
+      "predicate" : "ANY",
+      "criteria": [
+                    {
+                      "name": "from_address",
+                      "value": [
+                        "contains",
+                        "tenmiles"
+                      ]
+                    },
+                    {
+                      "name": "to_address",
+                      "value": [
+                        "contains",
+                        "thilak.desing@gmail.com"
+                      ]
+		    },
+                    {
+                      "name": "subject",
+                      "value": [
+                        "contains",
+                        "assignment"
+                      ]
+                    }
+                  ],
+      "action":"Mark as UnRead",
+      "modify_body": {
+                  "addLabelIds": ["UNREAD"]
+                }
+    }
+}
+
+	
+
