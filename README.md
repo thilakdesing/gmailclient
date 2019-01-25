@@ -23,5 +23,5 @@ Performs actions as described in rule and changes the state of Gmail messages in
 **ENHANCEMENTS TO BE MADE**
 The assignment is completed to meet the requirements. However following enhancements could be made  
 Rules and actions are predefined - This could be taken from user as command line arguments  
-Converting the standalone script into a GUI application using PyQT
+Converting the standalone script into a GUI application using PyQT  
 Unit and functional test cases  
