@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS `email_details`;
 CREATE TABLE `email_details` (
   `id` varchar(255) NOT NULL,
   `email_address` varchar(255) DEFAULT NULL,
+  `internal_date` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
