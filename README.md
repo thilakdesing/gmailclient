@@ -1,5 +1,6 @@
 # GmailClient
-Standalone Application connecting to Gmail and taking actions on messages.
+Standalone Application connecting to Gmail and taking actions on messages.  
+Video demo of running application - https://youtu.be/KdyDwCuL5sc
 
 **crawler.py**  
 Standaloe script which establishes a connection with Gmail using Oauth.  
@@ -18,3 +19,9 @@ Json file consiting of rules with a structure including Predicates, Criterias an
 Standalone script displaying set of rules parsed from Rules.json file  
 Script expects rule number to be chosen by the user  
 Performs actions as described in rule and changes the state of Gmail messages in real time  
+
+**ENHANCEMENTS TO BE MADE**
+The assignment is completed to meet the requirements. However following enhancements could be made  
+Rules and actions are predefined - This could be taken from user as command line arguments  
+Converting the standalone script into a GUI application using PyQT
+Unit and functional test cases  
