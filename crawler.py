@@ -43,11 +43,20 @@ class GmailClient(object):
         label_ids: Only return Messages with labelIds applied.
         :Returns:
         List of Messages 
+        :summary:
+                    1. Fetches the last message datetime record in database
+                    2. Applies filter to gmail api to fetch messages after this time
+                    3. Iterates and forms message list
         """
         try:
-            response = self.service.users().messages().list(userId=self.user_id,
+            last_fetched_time=self.last_fetched_message_time()
+            if last_fetched_time:
+                query="after:"+str(last_fetched_time)
+                response = self.service.users().messages().list(userId=self.user_id,q=query,
                                                        labelIds=label_ids).execute()
-        
+            else:
+                response = self.service.users().messages().list(userId=self.user_id,
+                                                       labelIds=label_ids).execute()
             messages = []
             if 'messages' in response:
               messages.extend(response['messages'])
@@ -63,6 +72,19 @@ class GmailClient(object):
         except Exception as error:
             print('Error encountered: %s' % error)
 
+    def last_fetched_message_time(self):
+        """
+        :summary: Fetches the last gmail message time
+                    
+        """
+        
+        mydb=self.get_mydb()
+        mycursor = mydb.cursor()
+        query="SELECT max(internal_date) from email_details;"
+        mycursor.execute(query)
+        result=mycursor.fetchone()
+        return result[0]
+    
     def fetch_email(self,messages):
         """
         :summary: Makes request to google service to fetch metadata
@@ -78,7 +100,8 @@ class GmailClient(object):
                                                    format='metadata', 
                                                    metadataHeaders=["To", "From", "Subject"]).execute()
             label_ids=response['labelIds']
-            date=datetime.datetime.fromtimestamp(int(response['internalDate'])/1000)
+            internal_date=int(response['internalDate'])/1000
+            date=datetime.datetime.fromtimestamp(internal_date)
             headers=response['payload']['headers']
             message_detail=self.parse_message(headers)
             email_id=message_detail.get('from_address')
@@ -89,8 +112,9 @@ class GmailClient(object):
                                         message_detail['subject'],
                                         label,
                                         date))
-            email_addresses.append((id,email_id))
+            email_addresses.append((id,email_id,internal_date))
         self.add_email_details(email_addresses)
+
         self.add_message_details(message_details)
     
     def add_email_details(self,email_addresses):
@@ -102,7 +126,7 @@ class GmailClient(object):
         """
         mydb=self.get_mydb()
         mycursor = mydb.cursor()
-        query="INSERT INTO email_details (id,email_address) values (%s,%s)"
+        query="INSERT INTO email_details (id,email_address,internal_date) values (%s,%s,%s)"
         mycursor.executemany(query,email_addresses)             
         mydb.commit()      
         
@@ -144,10 +168,13 @@ class GmailClient(object):
         """
         if email_address:
             pattern = re.search('<(.+?)>', email_address)
-            email_id=pattern.group(1)
-            print(email_id)
-            return email_id
-            
+            if pattern:
+                email_id=pattern.group(1)
+                print(email_id)
+                return email_id
+            else:
+                print(email_address)
+                return str(email_address)
     def create_tables(self):
         """
         :summary: 1. Gets database connection object
@@ -155,7 +182,7 @@ class GmailClient(object):
         """
         mydb=self.get_mydb()
         mycursor = mydb.cursor()
-        mycursor.execute("CREATE TABLE IF NOT EXISTS email_details (id VARCHAR(255) PRIMARY KEY, email_address VARCHAR(255))")
+        mycursor.execute("CREATE TABLE IF NOT EXISTS email_details (id VARCHAR(255) PRIMARY KEY, email_address VARCHAR(255),internal_date bigint)")
         mycursor.execute("CREATE TABLE IF NOT EXISTS label_details (id VARCHAR(100) PRIMARY KEY, label_name VARCHAR(255))")
         mycursor.execute("CREATE TABLE IF NOT EXISTS message_details (id int auto_increment PRIMARY KEY,message_id VARCHAR(255), from_address VARCHAR(255),\
                         to_address VARCHAR(255),subject VARCHAR(255),label_id VARCHAR(100),message_date datetime,\
@@ -196,9 +223,16 @@ class GmailClient(object):
             mydb.commit()
 
 def main():
+    """
+    :summary: 
+        1. Establish connection to Gmail using Oauth
+        2. Read all labels and store in database
+        3. Read all messages and store in database
+        4. If messages are already parsed, fetch new messages based on timestamp
+    """
     client_obj=GmailClient()
     client_obj.create_tables()
-    client_obj.read_all_labels()
+#     client_obj.read_all_labels()
     messages = client_obj.fetch_label_messages(label_ids=['INBOX'])
     email_addresses=client_obj.fetch_email(messages)
 
